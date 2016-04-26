@@ -113,11 +113,13 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get Upload from DB
 	bk := new(Upload)
-	rows, err := db.Query("SELECT * FROM uploads WHERE slot_hash = $1", m[1])
+	rows, err := db.Query("SELECT * FROM uploads WHERE slot_hash = $1 AND upload_time IS NULL", m[1])
+	defer rows.Close()
 	if err != nil {
 		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	defer rows.Close()
 	rows.Next()
 	errScan := rows.Scan(&bk.id, &bk.slot_hash, &bk.jid, &bk.original_name, &bk.disk_name, &bk.upload_time, &bk.file_size, &bk.content_type, &bk.slot_time)
 	if errScan != nil {
@@ -181,12 +183,12 @@ func main() {
 		listeningString = ":8080"
 	}
 
-	ejabberdAdress := os.Getenv("EJABBERD_PORT_5222_TCP_ADDR")
-	if len(ejabberdAdress) == 0 {
+	ejabberdAddress := os.Getenv("EJABBERD_PORT_5222_TCP_ADDR")
+	if len(ejabberdAddress) == 0 {
 		log.Fatal("env var EJABBERD_PORT_5222_TCP_ADDR missing")
 		return
 	}
-	allowedSlotIp[ejabberdAdress] = 1
+	allowedSlotIp[ejabberdAddress] = 1
 
 	postgresAddress := os.Getenv("POSTGRES_PORT_5432_TCP_ADDR")
 	if len(postgresAddress) == 0 {
@@ -214,8 +216,7 @@ func main() {
 
 	uploadDir = os.Getenv("UPLOADED_FILES_DIR")
 	if len(uploadDir) == 0 {
-		log.Fatal("env var UPLOADED_FILES_DIR missing")
-		return
+		uploadDir = "/opt/xmpp_uploads"
 	}
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		log.Fatal(fmt.Sprintf("Upload directory '%s' does not exist", uploadDir))
