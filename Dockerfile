@@ -1,5 +1,7 @@
 FROM golang
 
+MAINTAINER Tobias Hartwich <tobias.hartwich@gmail.com>
+
 ADD . /go/src/git.tha.io/toha/go-xmpp-upload
 
 RUN mkdir -p /opt/xmpp_uploads
