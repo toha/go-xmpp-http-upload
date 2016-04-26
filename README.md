@@ -10,7 +10,7 @@ Configuration is done through various environment variables. The Following vars 
 
 | Variable                      | Description                                                                                                                                                                                               | Example                   | Required  |
 |-----------------------------  |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |------------------------   |---------- |
-| EJABBERD_PORT_5222_TCP_ADDR   | Host- or IP-Address of the Ejabberd Server. Only this IP (and IPs listed in ALLOWED_IPS)  can request a upload slot. If you use Docker this Variable is filled  automatically through container linking.  | 172.17.0.2                |     ✓     |
+| EJABBERD_PORT_5222_TCP_ADDR   | Host- or IP-Address of the Ejabberd Server. Only this IP (and IPs listed in ALLOWED_IPS)  can request a upload slot (Authentication). If you use Docker this Variable is filled automatically through container linking.  | 172.17.0.2                |     ✓     |
 | POSTGRES_PORT_5432_TCP_ADDR   | Host- or IP-Address of your Postgres server. If you use Docker this Variable is filled  automatically through container linking                                                                           | 172.17.0.3                |     ✓     |
 | POSTGRES_USER                 | The Postgres user                                                                                                                                                                                         | postgres                  |     ✓     |
 | POSTGRES_PASSWORD             | The Password for the given user                                                                                                                                                                           | hunter2                   |     ✓     |
@@ -18,14 +18,14 @@ Configuration is done through various environment variables. The Following vars 
 | ALLOWED_IPS                   | Comma separated list of additionally allowed IP  addresses which can request upload slots.                                                                                                                | 127.0.0.1, 192.168.0.1    |     x     |
 | PUT_GET_URL_HOST              | The host part of the PUT/GET URL which will  send to the Jabber Client                                                                                                                                    | http://yourdomain.tld     |     ✓     |
 | XMPP_UPLOAD_LISTEN            | Listening string for the xmpp-upload http server. If you use Docker the port must be set to 8080  except if you change the Dockerfile to expose  another port                                             | :8080                     |     x     |
-| UPLOADED_FILES_DIR            | Directory for storing uploaded files. Make sure this directory exists                                                                                                                                     | /opt/xmpp_uploads         |     ✓     |
+| UPLOADED_FILES_DIR            | Directory for storing uploaded files. Make sure this directory exists. (Standard: /opt/xmpp_uploads)                                                                                                      | /opt/xmpp_uploads         |     x     |
 
 
 ## Preparations
 
 ### Checkout
 
-Clone this Repository in you ```$GOPATH```
+Clone this Repository in your ```$GOPATH```
 
 
 ### Configuring with Ejabberd
@@ -62,7 +62,7 @@ docker build -t xmpp_upload:latest .
 ### Create Data Container
 
 ```
-docker create --name xmpp-upload-data xmpp_upload:latest
+docker create --name xmpp-upload-data -v /opt/xmpp_uploads:/opt/xmpp_uploads xmpp_upload:latest
 ```
 
 ### Run
@@ -73,6 +73,7 @@ docker run -d \
     --volumes-from xmpp-upload-data \
     --link ejabberd-run:postgresql \
     --link postgres-run:postgresql \
+    -v /opt/xmpp_uploads:/opt/xmpp_uploads \
     -p 8080:8080 \
     -h 'yourhostname' \
     -e "POSTGRES_USER=postgres" \
