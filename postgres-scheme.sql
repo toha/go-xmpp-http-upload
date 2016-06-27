@@ -1,5 +1,5 @@
 CREATE TABLE uploads (
-    id integer NOT NULL,
+    id SERIAL,
     slot_hash character(64),
     jid character varying,
     original_name character varying,
@@ -10,16 +10,6 @@ CREATE TABLE uploads (
     slot_time timestamp with time zone
 );
 
-
-CREATE SEQUENCE uploads_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE uploads_id_seq OWNED BY uploads.id;
 
 ALTER TABLE ONLY uploads
     ADD CONSTRAINT id PRIMARY KEY (id);
